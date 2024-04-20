@@ -1,0 +1,90 @@
+# Import necessary libraries
+import RPi.GPIO as GPIO  # Library for GPIO control
+import tkinter as tk     # Library for creating GUI
+
+# Set up GPIO
+GPIO.setmode(GPIO.BCM)   # Set GPIO numbering mode to BCM
+red_led = 17             # GPIO pin for the red LED
+green_led = 27           # GPIO pin for the green LED
+blue_led = 22            # GPIO pin for the blue LED
+GPIO.setup(red_led, GPIO.OUT)    # Set red LED pin as output
+GPIO.setup(green_led, GPIO.OUT)  # Set green LED pin as output
+GPIO.setup(blue_led, GPIO.OUT)   # Set blue LED pin as output
+
+# Create PWM (Pulse Width Modulation) objects for LED control
+red_pwm = GPIO.PWM(red_led, 100)    # Create PWM object for red LED with frequency 100 Hz
+green_pwm = GPIO.PWM(green_led, 100) # Create PWM object for green LED with frequency 100 Hz
+blue_pwm = GPIO.PWM(blue_led, 100)   # Create PWM object for blue LED with frequency 100 Hz
+
+# Function to turn off all LEDs
+def turn_off_leds():
+    GPIO.output(red_led, GPIO.LOW)    # Turn off red LED
+    GPIO.output(green_led, GPIO.LOW)  # Turn off green LED
+    GPIO.output(blue_led, GPIO.LOW)   # Turn off blue LED
+    red_pwm.stop()    # Stop PWM for red LED
+    green_pwm.stop()  # Stop PWM for green LED
+    blue_pwm.stop()   # Stop PWM for blue LED
+
+# Function to turn on selected LED with specified intensity
+def turn_on_led(led_pin, intensity):
+    turn_off_leds()    # Turn off all LEDs
+    GPIO.output(led_pin, GPIO.HIGH)  # Turn on the selected LED
+    pwm = None  # Placeholder for PWM object
+    if led_pin == red_led:
+        pwm = red_pwm
+    elif led_pin == green_led:
+        pwm = green_pwm
+    elif led_pin == blue_led:
+        pwm = blue_pwm
+    pwm.start(intensity)  # Start PWM for the selected LED with specified intensity
+
+# Function to handle button click event
+def on_button_click():
+    intensity = intensity_slider.get()  # Get intensity from the slider
+    if var.get() == 1:    # If Red radio button is selected
+        turn_on_led(red_led, intensity)  # Turn on red LED
+    elif var.get() == 2:  # If Green radio button is selected
+        turn_on_led(green_led, intensity)  # Turn on green LED
+    elif var.get() == 3:  # If Blue radio button is selected
+        turn_on_led(blue_led, intensity)   # Turn on blue LED
+
+# Function to exit the program
+def exit_program():
+    GPIO.cleanup()  # Clean up GPIO configuration
+    root.destroy()  # Destroy the Tkinter window
+
+# Create the main window
+root = tk.Tk()   # Create Tkinter window
+root.title("LED Control")  # Set window title
+
+# Create a label
+label = tk.Label(root, text="Select LED color:")
+label.pack()  # Add label to the window
+
+# Create radio buttons with labels
+var = tk.IntVar()  # Variable to hold selected radio button value
+red_radio = tk.Radiobutton(root, text="Red", variable=var, value=1)
+red_radio.pack(anchor=tk.W)  # Add Red radio button to the window
+green_radio = tk.Radiobutton(root, text="Green", variable=var, value=2)
+green_radio.pack(anchor=tk.W)  # Add Green radio button to the window
+blue_radio = tk.Radiobutton(root, text="Blue", variable=var, value=3)
+blue_radio.pack(anchor=tk.W)  # Add Blue radio button to the window
+
+# Create a slider for LED intensity
+intensity_slider = tk.Scale(root, from_=0, to=100, orient=tk.HORIZONTAL, label="Intensity", length=200)
+intensity_slider.pack()  # Add intensity slider to the window
+
+# Create a button to turn on the LED
+button = tk.Button(root, text="Turn On", command=on_button_click)
+button.pack()  # Add Turn On button to the window
+
+# Create a button to turn off all LEDs
+off_button = tk.Button(root, text="Turn Off All LEDs", command=turn_off_leds)
+off_button.pack()  # Add Turn Off All LEDs button to the window
+
+# Create an exit button
+exit_button = tk.Button(root, text="Exit", command=exit_program)
+exit_button.pack()  # Add Exit button to the window
+
+# Run the Tkinter event loop
+root.mainloop()  # Start the Tkinter main event loop
